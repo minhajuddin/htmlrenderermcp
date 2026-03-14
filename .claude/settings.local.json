@@ -3,7 +3,10 @@
     "allow": [
       "Bash(git config:*)",
       "Bash(go version:*)",
-      "Bash(git -C /Users/minhajuddin/r/htmlrenderermcp rev-parse --abbrev-ref HEAD)"
+      "Bash(go mod:*)",
+      "Bash(go get:*)",
+      "Bash(go build:*)",
+      "Bash(git:*)"
     ]
   }
 }
