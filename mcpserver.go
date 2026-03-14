@@ -9,7 +9,6 @@ import (
 	"os/exec"
 	"runtime"
 	"strings"
-	"time"
 
 	"github.com/google/uuid"
 	"github.com/mark3labs/mcp-go/mcp"
@@ -29,11 +28,6 @@ func SetupMCPServer(store Storage, baseURL string, autoOpen bool) *server.MCPSer
 		mcp.WithString("id", mcp.Description("Optional ID of an existing render to update. If provided, overwrites the previous render at the same URL instead of creating a new one.")),
 	)
 	s.AddTool(renderTool, makeRenderHandler(store, baseURL, autoOpen))
-
-	listTool := mcp.NewTool("list_renders",
-		mcp.WithDescription("Lists all previously rendered HTML pages with their IDs, titles, URLs, and creation timestamps."),
-	)
-	s.AddTool(listTool, makeListHandler(store, baseURL))
 
 	return s
 }
@@ -85,35 +79,6 @@ func makeRenderHandler(store Storage, baseURL string, autoOpen bool) server.Tool
 		}
 
 		jsonBytes, _ := json.Marshal(response)
-		return mcp.NewToolResultText(string(jsonBytes)), nil
-	}
-}
-
-func makeListHandler(store Storage, baseURL string) server.ToolHandlerFunc {
-	return func(ctx context.Context, request mcp.CallToolRequest) (*mcp.CallToolResult, error) {
-		renders, err := store.List(ctx)
-		if err != nil {
-			return mcp.NewToolResultError(fmt.Sprintf("failed to list renders: %v", err)), nil
-		}
-
-		type renderEntry struct {
-			ID        string `json:"id"`
-			Title     string `json:"title,omitempty"`
-			URL       string `json:"url"`
-			CreatedAt string `json:"created_at"`
-		}
-
-		entries := make([]renderEntry, len(renders))
-		for i, r := range renders {
-			entries[i] = renderEntry{
-				ID:        r.ID,
-				Title:     r.Title,
-				URL:       fmt.Sprintf("%s/render/%s", baseURL, r.ID),
-				CreatedAt: r.CreatedAt.Format(time.RFC3339),
-			}
-		}
-
-		jsonBytes, _ := json.Marshal(entries)
 		return mcp.NewToolResultText(string(jsonBytes)), nil
 	}
 }
